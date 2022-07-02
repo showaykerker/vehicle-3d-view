@@ -17,9 +17,8 @@ def main():
 	right = road.get_left()
 	canvas.add_line(right[0], right[1], road.get_color())
 	# canvas.show()
-	camera.set_position(-20, 0, 2)
-	camera.set_rotation(0, 0, np.pi)
-	camera.get_image_frame_coord([0, 0, 0])
+	camera.set_pose([0., 0., 0.], [0., 0., 0.])
+	camera.get_image_frame_coord([[100., 50., 0.], [10, 0, 0]])
 
 
 if __name__ == '__main__':
