@@ -3,22 +3,32 @@ from components.vehicle import Vehicle
 from components.road import Road
 from components.canvas import Canvas
 from components.camera import Camera
+from components.point_manager import PointManager
 
 def main():
+	point_manager = PointManager()
 	camera = Camera()
 	canvas = Canvas()
 	road = Road()
 	ego = Vehicle()
-	veh1 = Vehicle(color=(128, 255, 0), position=(7.0, 1.0, 2.0))
-	veh2 = Vehicle(color=(128, 255, 0), position=(1.0, 4.0, 2.0))
+	veh1 = Vehicle(color=(128, 128, 0), position=(10.0, 12.0, 0.0))
+	veh2 = Vehicle(color=(128, 255, 0), position=(7.0, -12.0, 0.0))
 
-	left = road.get_left()
-	canvas.add_line(left[0], left[1], road.get_color())
-	right = road.get_left()
-	canvas.add_line(right[0], right[1], road.get_color())
-	# canvas.show()
-	camera.set_pose([0., 0., 0.], [0., 0., 0.])
-	camera.get_image_frame_coord([[100., 50., 0.], [10, 0, 0]])
+	point_manager.add_road(road)
+	point_manager.add_vehicle(ego)
+	point_manager.add_vehicle(veh1)
+	point_manager.add_vehicle(veh2)
+
+	l, c = point_manager.get_all_links()
+
+	camera.set_pose(position=(-12., 0., 6.), rotation=(0., np.pi/12., 0.))
+	links_on_camera_frame = camera.get_links_on_camera_frame(l)
+	for link, color in zip(links_on_camera_frame, c):
+		canvas.add_line(link[0], link[1], color, width=2)
+	canvas.show()
+
+
+
 
 
 if __name__ == '__main__':
