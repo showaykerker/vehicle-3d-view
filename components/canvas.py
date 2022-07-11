@@ -9,8 +9,8 @@ class Canvas:
 	def add_line(self, start, end, color, width=2):
 		cv2.line(
 			self._canvas,
-			start.tolist(),
-			end.tolist(),
+			start[:2].astype(np.int32).tolist(),
+			end[:2].astype(np.int32).tolist(),
 			color.tolist(),
 			width)
 
