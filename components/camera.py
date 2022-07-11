@@ -1,38 +1,66 @@
 import numpy as np
 
 class Camera:
-	def __init__(self, fx=5, fy=5, cx=300, cy=200):
-		self._intrinsic_matrix = np.array([
-			[fx, 0., cx],
-			[0., fy, cy],
-			[0., 0., 1.]
-		])
+	def __init__(self,
+		fx=500, fy=50, cx=200, cy=300,
+		position=(0., 0., 0.), rotation=(0., 0., 0.)):
+		self._fx = fx
+		self._fy = fy
+		self._cx = cx
+		self._cy = cy
+		self.set_pose(position, rotation)
+
+	def get_pose(self):
+		return self._position, self._rotation
 
 	def set_pose(self, position, rotation):
-		tx, ty, tz = position
-		roll, pitch, yaw = rotation
+		self._position = np.array(position).astype(np.float32)
+		self._rotation = np.array(rotation).astype(np.float32)
 
-		cosa = np.cos(yaw)
-		sina = np.sin(yaw)
-		cosb = np.cos(pitch)
-		sinb = np.sin(pitch)
-		cosr = np.cos(roll)
-		sinr = np.sin(roll)
-
-		self._extrinsic_matrix = np.array([
-			[cosb*cosr, sina*sinb*cosr-cosa*sinr, cosa*sinb*cosr+sina*sinr, tx],
-			[cosb*sinr, sina*sinb*sinr+cosa*cosr, cosa*sinb*sinr-sina*cosr, ty],
-			[-sinb, sina*cosb, cosa*cosb, tz],
+	def _to_camera_frame(self, points):
+		# points.shape (-1, 3)
+		new_points = points[:, :3] - self._position.reshape((-1, 3))
+		roll, pitch, yaw = self._rotation
+		rot_x = np.array([
+			[1.,             0.,           0.            ],
+			[0.,             np.cos(-roll), np.sin(roll)   ],
+			[0.,             np.sin(-roll), np.cos(-roll)  ],
 		]).astype(np.float32)
+		rot_y = np.array([
+			[np.cos(-pitch), 0.,           np.sin(-pitch)],
+			[0.,             1.,           0.            ],
+			[np.sin(pitch),  0.,           np.cos(-pitch)]
+		]).astype(np.float32)
+		rot_z = np.array([
+			[np.cos(-yaw),   np.sin(yaw),  0.            ],
+			[np.sin(-yaw),   np.cos(-yaw), 0.            ],
+			[0.,             0.,           1.            ]
+		]).astype(np.float32)
+		new_points = np.matmul(rot_x, new_points.transpose())
+		new_points = np.matmul(rot_y, new_points)
+		new_points = np.matmul(rot_z, new_points)
+		return new_points
 
-	def get_image_frame_coord(self, points):
+	def _to_image_frame(self, points):
+		# points.shape (3, -1)
+		image_frame = np.zeros((points.shape[1], 2)).astype(np.float32)
+		image_frame[:,1] = (-points[2,:] / points[0, :] * self._fx).reshape((-1,)) + self._cx
+		image_frame[:,0] = (-points[1,:] / points[0, :] * self._fy).reshape((-1,)) + self._cy
+		return image_frame
+
+	def get_points_on_camera_frame(self, points):
 		points = np.array(points)
 		point_matrix = np.reshape(points, (-1, 3))
-		point_matrix = np.concatenate((point_matrix, np.ones((point_matrix.shape[0], 1))), axis=1)
+
 		# To camera coord
-		res = np.matmul(self._extrinsic_matrix, point_matrix.transpose())
+		points_on_camera_frame = self._to_camera_frame(point_matrix)
 		# To image coord
-		print(res)
-		res = np.matmul(self._intrinsic_matrix, res).transpose()
-		print(res)
-		return res
+		points_on_image_frame = self._to_image_frame(points_on_camera_frame)
+
+		return points_on_image_frame
+
+	def get_links_on_camera_frame(self, links):
+		links_flatten = links.reshape((-1, 3))
+		points_on_camera_frame = self.get_points_on_camera_frame(links_flatten)
+		points_on_camera_frame = points_on_camera_frame.reshape((-1, 2, 2))
+		return points_on_camera_frame
