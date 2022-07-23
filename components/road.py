@@ -17,14 +17,14 @@ class Road:
 		self,
 		width=12.0,
 		color=(128, 128, 255),
-		start_point=(0., 5.),
-		end_point=(1800., 5.),
-		heading=0.):
+		start_point=(-6., 0.),
+		length=500,
+		heading=np.pi/6.):
 		#
 		self._width = width
 		self._color = np.array(color)
 		self._start_point = np.array(start_point)
-		self._end_point = np.array(end_point)
+		self._end_point = np.array(start_point) + np.array([length*np.cos(heading), length*np.sin(heading)])
 		self._heading = heading
 
 	def get_color(self):
