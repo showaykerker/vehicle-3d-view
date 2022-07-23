@@ -4,4 +4,5 @@
 
 ## TO-DO
 * Shear model
-* Road visualizaion
+* Replace road data with waypoints
+* Use OSM for road data

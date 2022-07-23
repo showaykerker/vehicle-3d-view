@@ -21,7 +21,7 @@ def main():
 
 	l, c = point_manager.get_all_links()
 
-	camera.set_pose(position=(-12., 0., 6.), rotation=(0., np.pi/12., 0.))
+	camera.set_pose(position=(-2., 0., 3.), rotation=(0., np.pi/24., 0.))
 	links_on_camera_frame = camera.get_links_on_camera_frame(l)
 	for link, color in zip(links_on_camera_frame, c):
 		canvas.add_line(link[0], link[1], color, width=2)

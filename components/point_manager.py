@@ -40,8 +40,19 @@ class PointManager:
 		box, color = vehicle.get_box_and_color()
 		self._add_box(box, color)
 
-	def add_road(self, road):
-		pass
+	def add_road(self, road, color=(64, 64, 64)):
+		for line in [road.get_center(), road.get_left(), road.get_right()]:
+			idx = len(self._points)
+			start = idx
+			x1, y1, z1 = line[0]
+			links1 = [idx + 1]
+			x2, y2, z2 = line[1]
+			links2 = [idx]
+			colors = [color]
+			self._points.append(Point(idx, x1, y1, z1, links1, colors))
+			self._points.append(Point(idx + 1, x2, y2, z2, links2, colors))
+		return (start, start+1)
+
 
 	def _add_box(self, box, color):
 		assert type(box) is list
